@@ -1,0 +1,51 @@
+@import 'leaflet/dist/leaflet.css';
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #0f0f0f;
+  color: #f0f0f0;
+  min-height: 100vh;
+}
+
+h1, h2, h3 {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+button {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+input {
+  background-color: #1e1e1e;
+  border: 1px solid #333;
+  color: #f0f0f0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 15px;
+  width: 100%;
+  margin-top: 6px;
+  outline: none;
+  transition: border 0.2s;
+}
+
+input:focus {
+  border-color: #7c3aed;
+}
+
+input::placeholder {
+  color: #666;
+}
+
