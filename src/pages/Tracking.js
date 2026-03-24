@@ -49,7 +49,7 @@ export default function Tracking() {
   const simulacionRef = useRef(null);
 
   useEffect(() => {
-    axios.get(`http://localhost:5000/api/pedidos`)
+    axios.get(`${process.env.REACT_APP_API_URL}/api/pedidos`)
       .then(res => {
         const p = res.data.find(p => p._id === pedidoId);
         if (p) {

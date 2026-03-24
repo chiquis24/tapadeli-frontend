@@ -12,7 +12,7 @@ function Pago() {
     setLoading(true);
     setMensaje(null);
     try {
-      const respuesta = await axios.post('http://localhost:5000/api/pagos/crear-pago', {
+      const respuesta = await axios.post(`${process.env.REACT_APP_API_URL}/api/pagos/crear-pago`, {
         monto: parseInt(monto),
         descripcion: descripcion
       });

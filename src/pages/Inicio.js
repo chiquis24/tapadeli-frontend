@@ -10,7 +10,7 @@ export default function Inicio() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios.get('http://localhost:5000/api/restaurantes')
+    axios.get(`${process.env.REACT_APP_API_URL}/api/restaurantes`)
       .then(res => {
         setRestaurantes(res.data);
         setCargando(false);

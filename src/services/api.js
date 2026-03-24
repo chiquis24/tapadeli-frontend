@@ -3,7 +3,7 @@ import axios from 'axios';
 // Aquí definimos la URL base de nuestro servidor
 // En lugar de escribir http://localhost:5000 en cada petición, lo centralizamos aquí
 const API = axios.create({
-  baseURL: 'http://localhost:5000/api'
+  baseURL: `${process.env.REACT_APP_API_URL}/api`
 });
 
 // Servicios de Platillos

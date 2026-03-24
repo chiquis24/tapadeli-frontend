@@ -11,7 +11,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
 
-const API = 'http://localhost:5000/api';
+const API = `${process.env.REACT_APP_API_URL}/api`;
 
 const ESTADOS_COLOR = {
   pendiente: '#f59e0b', aceptado: '#3b82f6',

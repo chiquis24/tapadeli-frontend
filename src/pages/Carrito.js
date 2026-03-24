@@ -27,7 +27,7 @@ export default function Carrito() {
 
     setCargando(true);
     try {
-      const pedidoRes = await axios.post('http://localhost:5000/api/pedidos', {
+      const pedidoRes = await axios.post(`${process.env.REACT_APP_API_URL}/api/pedidos`, {
         clienteId: usuario?.uid || 'anonimo',
         clienteNombre: usuario?.displayName || usuario?.email || 'cliente',
         restauranteId: restauranteActivo?._id,
@@ -41,7 +41,7 @@ export default function Carrito() {
         direccionEntrega: direccion
       });
 
-      await axios.post('http://localhost:5000/api/pagos/crear-pago', {
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/pagos/crear-pago`, {
         monto: total,
         descripcion: `Pedido en ${restauranteActivo?.nombre}`
       });

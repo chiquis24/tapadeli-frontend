@@ -21,7 +21,7 @@ export default function Restaurante() {
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-    axios.get(`http://localhost:5000/api/restaurantes/${id}`)
+    axios.get(`${process.env.REACT_APP_API_URL}/api/restaurantes/${id}`)
       .then(res => {
         setData(res.data);
         setRestauranteActivo(res.data.restaurante);
