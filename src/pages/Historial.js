@@ -13,6 +13,13 @@ export default function Historial() {
   const navigate = useNavigate();
   const [pedidos, setPedidos] = useState([]);
   const [cargando, setCargando] = useState(true);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     if (!usuario) {
@@ -34,15 +41,13 @@ export default function Historial() {
   );
 
   return (
-    <div style={styles.container}>
+    <div style={{ ...styles.container, padding: isMobile ? '16px' : '30px 20px' }}>
       <div style={styles.inner}>
 
         <div style={styles.header}>
-          <div>
-            <p style={styles.eyebrow}>Tu cuenta</p>
-            <h1 style={styles.titulo}>Historial de pedidos</h1>
-            <p style={styles.subtitulo}>{pedidos.length} pedido{pedidos.length !== 1 ? 's' : ''} realizados</p>
-          </div>
+          <p style={styles.eyebrow}>Tu cuenta</p>
+          <h1 style={{ ...styles.titulo, fontSize: isMobile ? '18px' : '20px' }}>Historial de pedidos</h1>
+          <p style={styles.subtitulo}>{pedidos.length} pedido{pedidos.length !== 1 ? 's' : ''} realizados</p>
         </div>
 
         {pedidos.length === 0 ? (
@@ -69,7 +74,11 @@ export default function Historial() {
           <div style={styles.lista}>
             {pedidos.map(p => (
               <div key={p._id} style={styles.card}>
-                <div style={styles.cardHeader}>
+                <div style={{
+                  ...styles.cardHeader,
+                  flexDirection: isMobile ? 'column' : 'row',
+                  gap: isMobile ? '8px' : '16px',
+                }}>
                   <div>
                     <p style={styles.pedidoId}>Pedido #{p._id.slice(-6).toUpperCase()}</p>
                     <p style={styles.restaurante}>{p.restauranteId?.nombre}</p>
@@ -78,18 +87,27 @@ export default function Historial() {
                       hour: '2-digit', minute: '2-digit'
                     })}</p>
                   </div>
-                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  <div style={{
+                    textAlign: isMobile ? 'left' : 'right',
+                    flexShrink: 0,
+                    display: 'flex',
+                    flexDirection: isMobile ? 'row' : 'column',
+                    alignItems: isMobile ? 'center' : 'flex-end',
+                    gap: isMobile ? '10px' : '0',
+                  }}>
                     <span style={{
                       background: ESTADOS_COLOR[p.estado] + '22',
                       color: ESTADOS_COLOR[p.estado],
                       border: `1px solid ${ESTADOS_COLOR[p.estado]}44`,
                       fontSize: '11px', padding: '3px 10px',
                       borderRadius: '20px', fontWeight: '500',
-                      display: 'inline-block', marginBottom: '8px',
+                      display: 'inline-block', marginBottom: isMobile ? '0' : '8px',
                     }}>
                       {p.estado}
                     </span>
-                    <p style={styles.total}>${p.total} <span style={{ fontSize: '11px', color: '#555', fontWeight: '400' }}>MXN</span></p>
+                    <p style={{ ...styles.total, fontSize: isMobile ? '16px' : '18px' }}>
+                      ${p.total} <span style={{ fontSize: '11px', color: '#555', fontWeight: '400' }}>MXN</span>
+                    </p>
                   </div>
                 </div>
 
@@ -99,7 +117,12 @@ export default function Historial() {
                   ))}
                 </div>
 
-                <div style={styles.cardFooter}>
+                <div style={{
+                  ...styles.cardFooter,
+                  flexDirection: isMobile ? 'column' : 'row',
+                  alignItems: isMobile ? 'flex-start' : 'center',
+                  gap: isMobile ? '10px' : '0',
+                }}>
                   <span style={styles.direccion}>
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ marginRight: '4px' }}>
                       <path d="M6 1C4.067 1 2.5 2.567 2.5 4.5c0 2.625 3.5 6.5 3.5 6.5s3.5-3.875 3.5-6.5C9.5 2.567 7.933 1 6 1zm0 4.75a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5z" fill="#555"/>
@@ -109,7 +132,7 @@ export default function Historial() {
                   {p.estado !== 'entregado' && p.estado !== 'cancelado' && (
                     <button
                       onClick={() => navigate(`/tracking/${p._id}`)}
-                      style={styles.btnTracking}
+                      style={{ ...styles.btnTracking, width: isMobile ? '100%' : 'auto' }}
                       onMouseEnter={e => e.currentTarget.style.borderColor = '#7c3aed'}
                       onMouseLeave={e => e.currentTarget.style.borderColor = '#2a2a2a'}
                     >
@@ -130,27 +153,27 @@ const styles = {
   container: {
     minHeight: '100vh', background: '#0f0f0f',
     backgroundImage: 'radial-gradient(circle, #2a2a2a 1px, transparent 1px)',
-    backgroundSize: '24px 24px', padding: '30px 20px',
+    backgroundSize: '24px 24px',
   },
   inner: { maxWidth: '720px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' },
   loading: { minHeight: '100vh', background: '#0f0f0f', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  header: { background: '#111', border: '1px solid #1e1e1e', borderRadius: '12px', padding: '24px' },
+  header: { background: '#111', border: '1px solid #1e1e1e', borderRadius: '12px', padding: '20px' },
   eyebrow: { fontSize: '12px', color: '#7c3aed', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 8px', fontWeight: '500' },
-  titulo: { color: '#f1f1f1', fontSize: '20px', fontWeight: '600', margin: '0 0 4px' },
+  titulo: { color: '#f1f1f1', fontWeight: '600', margin: '0 0 4px' },
   subtitulo: { color: '#555', fontSize: '13px', margin: 0 },
   empty: { background: '#111', border: '1px solid #1e1e1e', borderRadius: '12px', padding: '48px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center' },
   emptyIcon: { width: '56px', height: '56px', background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' },
   btnVer: { background: '#7c3aed', color: '#fff', border: 'none', padding: '10px 24px', borderRadius: '8px', cursor: 'pointer', fontWeight: '500', fontSize: '13px', transition: 'background 0.15s' },
   lista: { display: 'flex', flexDirection: 'column', gap: '12px' },
   card: { background: '#111', border: '1px solid #1e1e1e', borderRadius: '12px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' },
-  cardHeader: { display: 'flex', justifyContent: 'space-between', gap: '16px' },
+  cardHeader: { display: 'flex', justifyContent: 'space-between' },
   pedidoId: { color: '#f1f1f1', fontWeight: '600', fontSize: '14px', margin: '0 0 4px' },
   restaurante: { color: '#888', fontSize: '13px', margin: '0 0 4px' },
   fecha: { color: '#444', fontSize: '12px', margin: 0 },
-  total: { color: '#f1f1f1', fontWeight: '600', fontSize: '18px', margin: 0 },
+  total: { color: '#f1f1f1', fontWeight: '600', margin: 0 },
   platillos: { display: 'flex', gap: '6px', flexWrap: 'wrap' },
   platTag: { background: '#1a1a1a', border: '1px solid #2a2a2a', color: '#888', fontSize: '12px', padding: '3px 10px', borderRadius: '20px' },
-  cardFooter: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid #1e1e1e' },
+  cardFooter: { display: 'flex', justifyContent: 'space-between', paddingTop: '12px', borderTop: '1px solid #1e1e1e' },
   direccion: { color: '#555', fontSize: '12px', display: 'flex', alignItems: 'center' },
   btnTracking: { background: 'transparent', border: '1px solid #2a2a2a', color: '#a78bfa', fontSize: '12px', padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', transition: 'border-color 0.15s' },
 };

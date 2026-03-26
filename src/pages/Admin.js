@@ -24,9 +24,7 @@ function SelectorMapa({ onSeleccionar }) {
       const { lat, lng } = e.latlng;
       onSeleccionar(lat, lng);
       try {
-        const res = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
-        );
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
         const data = await res.json();
         onSeleccionar(lat, lng, data.display_name);
       } catch {
@@ -44,6 +42,7 @@ export default function Admin() {
   const [pedidos, setPedidos] = useState([]);
   const [restSeleccionado, setRestSeleccionado] = useState('');
   const [marcador, setMarcador] = useState(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   const [formRest, setFormRest] = useState({
     nombre: '', descripcion: '', categoria: '', imagen: '',
@@ -52,6 +51,12 @@ export default function Admin() {
   const [formPlat, setFormPlat] = useState({
     nombre: '', descripcion: '', precio: '', categoria: '', restauranteId: ''
   });
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => { cargarDatos(); }, []);
 
@@ -100,8 +105,8 @@ export default function Admin() {
   const eliminarRestaurante = async (id) => {
     if (!window.confirm('¿Eliminar Restaurante?')) return;
     await axios.delete(`${API}/restaurantes/${id}`);
-    cargarDatos()
-  }
+    cargarDatos();
+  };
 
   const crearPlatillo = async () => {
     if (!formPlat.nombre || !formPlat.precio || !formPlat.restauranteId) {
@@ -134,48 +139,70 @@ export default function Admin() {
   ];
 
   return (
-    <div style={styles.container}>
+    <div style={{ ...styles.container, flexDirection: isMobile ? 'column' : 'row' }}>
 
-      {/* Sidebar */}
-      <div style={styles.sidebar}>
-        <div style={styles.sidebarHeader}>
-          <div style={styles.logoBox}>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <circle cx="7" cy="7" r="5" stroke="white" strokeWidth="1.5"/>
-              <path d="M7 4v3l2 1.5" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
-          </div>
-          <div>
-            <p style={{ color: '#f1f1f1', fontSize: '14px', fontWeight: '600', margin: 0 }}>TapaDeli</p>
-            <p style={{ color: '#555', fontSize: '11px', margin: 0 }}>Panel de administración</p>
-          </div>
+      {/* Sidebar desktop / Tabs móvil */}
+      {isMobile ? (
+        <div style={styles.tabs}>
+          {NAV.map(item => (
+            <button
+              key={item.key}
+              onClick={() => setSeccion(item.key)}
+              style={{
+                ...styles.tab,
+                background: seccion === item.key ? '#2a1f4a' : 'transparent',
+                color: seccion === item.key ? '#a78bfa' : '#666',
+                borderBottom: seccion === item.key ? '2px solid #7c3aed' : '2px solid transparent',
+              }}
+            >
+              {item.label}
+              <span style={{
+                background: seccion === item.key ? '#7c3aed' : '#222',
+                color: seccion === item.key ? '#fff' : '#555',
+                fontSize: '10px', padding: '1px 6px', borderRadius: '20px', marginLeft: '4px',
+              }}>{item.count}</span>
+            </button>
+          ))}
         </div>
-
-        <div style={styles.navDivider} />
-
-        {NAV.map(item => (
-          <button
-            key={item.key}
-            onClick={() => setSeccion(item.key)}
-            style={{
-              ...styles.sidebarBtn,
-              background: seccion === item.key ? '#2a1f4a' : 'transparent',
-              color: seccion === item.key ? '#a78bfa' : '#666',
-              borderLeft: seccion === item.key ? '2px solid #7c3aed' : '2px solid transparent',
-            }}
-          >
-            <span>{item.label}</span>
-            <span style={{
-              background: seccion === item.key ? '#7c3aed' : '#222',
-              color: seccion === item.key ? '#fff' : '#555',
-              fontSize: '11px', padding: '2px 7px', borderRadius: '20px',
-            }}>{item.count}</span>
-          </button>
-        ))}
-      </div>
+      ) : (
+        <div style={styles.sidebar}>
+          <div style={styles.sidebarHeader}>
+            <div style={styles.logoBox}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <circle cx="7" cy="7" r="5" stroke="white" strokeWidth="1.5"/>
+                <path d="M7 4v3l2 1.5" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+            </div>
+            <div>
+              <p style={{ color: '#f1f1f1', fontSize: '14px', fontWeight: '600', margin: 0 }}>TapaDeli</p>
+              <p style={{ color: '#555', fontSize: '11px', margin: 0 }}>Panel de administración</p>
+            </div>
+          </div>
+          <div style={styles.navDivider} />
+          {NAV.map(item => (
+            <button
+              key={item.key}
+              onClick={() => setSeccion(item.key)}
+              style={{
+                ...styles.sidebarBtn,
+                background: seccion === item.key ? '#2a1f4a' : 'transparent',
+                color: seccion === item.key ? '#a78bfa' : '#666',
+                borderLeft: seccion === item.key ? '2px solid #7c3aed' : '2px solid transparent',
+              }}
+            >
+              <span>{item.label}</span>
+              <span style={{
+                background: seccion === item.key ? '#7c3aed' : '#222',
+                color: seccion === item.key ? '#fff' : '#555',
+                fontSize: '11px', padding: '2px 7px', borderRadius: '20px',
+              }}>{item.count}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Contenido */}
-      <div style={styles.content}>
+      <div style={{ ...styles.content, padding: isMobile ? '16px' : '30px' }}>
 
         {/* ── RESTAURANTES ── */}
         {seccion === 'restaurantes' && (
@@ -187,7 +214,7 @@ export default function Admin() {
 
             <div style={styles.card}>
               <h3 style={styles.cardTitulo}>Nuevo restaurante</h3>
-              <div style={styles.formGrid}>
+              <div style={{ ...styles.formGrid, gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr' }}>
                 <input style={styles.input} placeholder="Nombre *"
                   value={formRest.nombre}
                   onChange={e => setFormRest(p => ({ ...p, nombre: e.target.value }))} />
@@ -202,7 +229,6 @@ export default function Admin() {
                   onChange={e => setFormRest(p => ({ ...p, descripcion: e.target.value }))} />
               </div>
 
-              {/* Mapa selector */}
               <div style={{ marginTop: '14px' }}>
                 <p style={{ color: '#666', fontSize: '12px', fontWeight: '500', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 8px' }}>
                   Ubicación — haz clic en el mapa para seleccionar
@@ -211,14 +237,13 @@ export default function Admin() {
                   <MapContainer
                     center={[14.9081, -92.2574]}
                     zoom={14}
-                    style={{ height: '260px', width: '100%' }}
+                    style={{ height: isMobile ? '200px' : '260px', width: '100%' }}
                   >
                     <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                     <SelectorMapa onSeleccionar={handleSeleccionarUbicacion} />
                     {marcador && <Marker position={marcador} />}
                   </MapContainer>
                 </div>
-
                 {formRest.coordenadas.lat && (
                   <div style={{ marginTop: '8px', background: '#111', border: '1px solid #2a2a2a', borderRadius: '8px', padding: '10px 12px' }}>
                     <p style={{ color: '#a78bfa', fontSize: '12px', margin: '0 0 2px', fontWeight: '500' }}>Ubicación seleccionada</p>
@@ -229,7 +254,7 @@ export default function Admin() {
 
               <button
                 onClick={crearRestaurante}
-                style={styles.btnPrimary}
+                style={{ ...styles.btnPrimary, width: isMobile ? '100%' : 'auto' }}
                 onMouseEnter={e => e.currentTarget.style.background = '#6d28d9'}
                 onMouseLeave={e => e.currentTarget.style.background = '#7c3aed'}
               >
@@ -239,7 +264,7 @@ export default function Admin() {
 
             <div style={styles.lista}>
               {restaurantes.map(r => (
-                <div key={r._id} style={styles.listaItem}>
+                <div key={r._id} style={{ ...styles.listaItem, flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
                   <span style={{ fontSize: '24px', lineHeight: 1 }}>{r.imagen}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={styles.itemNombre}>{r.nombre}</p>
@@ -255,15 +280,15 @@ export default function Admin() {
                     {r.activo ? 'Activo' : 'Inactivo'}
                   </span>
                   <button
-  onClick={() => eliminarRestaurante(r._id)}
-  style={styles.btnDanger}
-  onMouseEnter={e => e.currentTarget.style.background = '#7f1d1d'}
-  onMouseLeave={e => e.currentTarget.style.background = '#2a1010'}
->
-  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-    <path d="M2 3.5h10M5.5 3.5V2.5h3v1M4.5 3.5l.5 8h4l.5-8" stroke="#fca5a5" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-</button>
+                    onClick={() => eliminarRestaurante(r._id)}
+                    style={styles.btnDanger}
+                    onMouseEnter={e => e.currentTarget.style.background = '#7f1d1d'}
+                    onMouseLeave={e => e.currentTarget.style.background = '#2a1010'}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                      <path d="M2 3.5h10M5.5 3.5V2.5h3v1M4.5 3.5l.5 8h4l.5-8" stroke="#fca5a5" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
                 </div>
               ))}
             </div>
@@ -301,7 +326,7 @@ export default function Admin() {
             {restSeleccionado && (
               <div style={styles.card}>
                 <h3 style={styles.cardTitulo}>Nuevo platillo</h3>
-                <div style={styles.formGrid}>
+                <div style={{ ...styles.formGrid, gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr' }}>
                   <input style={styles.input} placeholder="Nombre *"
                     value={formPlat.nombre}
                     onChange={e => setFormPlat(p => ({ ...p, nombre: e.target.value }))} />
@@ -317,7 +342,7 @@ export default function Admin() {
                 </div>
                 <button
                   onClick={crearPlatillo}
-                  style={styles.btnPrimary}
+                  style={{ ...styles.btnPrimary, width: isMobile ? '100%' : 'auto' }}
                   onMouseEnter={e => e.currentTarget.style.background = '#6d28d9'}
                   onMouseLeave={e => e.currentTarget.style.background = '#7c3aed'}
                 >
@@ -368,13 +393,17 @@ export default function Admin() {
               )}
               {pedidos.map(p => (
                 <div key={p._id} style={styles.pedidoCard}>
-                  <div style={styles.pedidoHeader}>
+                  <div style={{
+                    ...styles.pedidoHeader,
+                    flexDirection: isMobile ? 'column' : 'row',
+                    gap: isMobile ? '8px' : '16px',
+                  }}>
                     <div>
                       <p style={styles.itemNombre}>Pedido #{p._id.slice(-6).toUpperCase()}</p>
                       <p style={styles.itemSub}>{p.restauranteId?.nombre} · {p.clienteNombre}</p>
                       <p style={styles.itemSub}>{p.direccionEntrega}</p>
                     </div>
-                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <div style={{ textAlign: isMobile ? 'left' : 'right', flexShrink: 0 }}>
                       <span style={{
                         background: ESTADOS_COLOR[p.estado] + '22',
                         color: ESTADOS_COLOR[p.estado],
@@ -395,8 +424,8 @@ export default function Admin() {
                     ))}
                   </div>
 
-                  <div style={styles.pedidoAcciones}>
-                    <span style={{ color: '#555', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Estado:</span>
+                  <div style={{ ...styles.pedidoAcciones, flexWrap: 'wrap' }}>
+                    <span style={{ color: '#555', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.06em', width: isMobile ? '100%' : 'auto' }}>Estado:</span>
                     {['aceptado', 'en_camino', 'entregado', 'cancelado'].map(est => (
                       <button
                         key={est}
@@ -425,18 +454,29 @@ export default function Admin() {
 
 const styles = {
   container: { display: 'flex', minHeight: '100vh', background: '#0f0f0f' },
+  tabs: {
+    display: 'flex', background: '#111',
+    borderBottom: '1px solid #1e1e1e',
+    padding: '0 16px', overflowX: 'auto',
+  },
+  tab: {
+    border: 'none', padding: '14px 12px', cursor: 'pointer',
+    fontSize: '13px', fontWeight: '500', whiteSpace: 'nowrap',
+    display: 'flex', alignItems: 'center', gap: '4px',
+    transition: 'all 0.15s', flexShrink: 0,
+  },
   sidebar: { width: '220px', background: '#111', borderRight: '1px solid #1e1e1e', padding: '20px', display: 'flex', flexDirection: 'column', gap: '4px', flexShrink: 0 },
   sidebarHeader: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' },
   logoBox: { width: '28px', height: '28px', background: '#7c3aed', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   navDivider: { height: '1px', background: '#1e1e1e', margin: '8px 0 12px' },
   sidebarBtn: { border: 'none', padding: '10px 12px', borderRadius: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '13px', fontWeight: '500', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'all 0.15s' },
-  content: { flex: 1, padding: '30px', overflowY: 'auto' },
+  content: { flex: 1, overflowY: 'auto' },
   pageHeader: { marginBottom: '24px' },
   titulo: { color: '#f1f1f1', fontSize: '20px', fontWeight: '600', margin: '0 0 4px' },
   subtitulo: { color: '#555', fontSize: '13px', margin: 0 },
   card: { background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '20px', marginBottom: '16px' },
   cardTitulo: { color: '#888', fontSize: '12px', fontWeight: '500', margin: '0 0 14px', textTransform: 'uppercase', letterSpacing: '0.06em' },
-  formGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' },
+  formGrid: { display: 'grid', gap: '10px' },
   input: { background: '#111', border: '1px solid #2a2a2a', color: '#f1f1f1', padding: '10px 12px', borderRadius: '8px', fontSize: '13px', width: '100%', boxSizing: 'border-box', outline: 'none' },
   btnPrimary: { background: '#7c3aed', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: '500', fontSize: '13px', marginTop: '12px', transition: 'background 0.15s' },
   btnSelector: { border: '1px solid', padding: '7px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', transition: 'all 0.15s' },
@@ -448,9 +488,9 @@ const styles = {
   badge: { fontSize: '11px', padding: '3px 10px', borderRadius: '20px', fontWeight: '500', flexShrink: 0 },
   precio: { color: '#7c3aed', fontWeight: '600', fontSize: '14px', flexShrink: 0 },
   pedidoCard: { background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' },
-  pedidoHeader: { display: 'flex', justifyContent: 'space-between', gap: '16px' },
+  pedidoHeader: { display: 'flex', justifyContent: 'space-between' },
   pedidoPlatillos: { display: 'flex', gap: '6px', flexWrap: 'wrap' },
   platTag: { background: '#111', border: '1px solid #2a2a2a', color: '#888', fontSize: '12px', padding: '3px 10px', borderRadius: '20px' },
-  pedidoAcciones: { display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', paddingTop: '12px', borderTop: '1px solid #1e1e1e' },
+  pedidoAcciones: { display: 'flex', gap: '6px', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid #1e1e1e' },
   btnEstado: { border: '1px solid', padding: '5px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '500', transition: 'all 0.15s' },
 };

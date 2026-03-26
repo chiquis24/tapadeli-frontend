@@ -19,6 +19,13 @@ export default function Restaurante() {
   const { carrito, agregarAlCarrito, quitarDelCarrito, total, setRestauranteActivo } = useCarrito();
   const [data, setData] = useState(null);
   const [cargando, setCargando] = useState(true);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     axios.get(`${process.env.REACT_APP_API_URL}/api/restaurantes/${id}`)
@@ -27,6 +34,7 @@ export default function Restaurante() {
         setRestauranteActivo(res.data.restaurante);
         setCargando(false);
       });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   if (cargando) return (
@@ -50,9 +58,9 @@ export default function Restaurante() {
             Volver
           </button>
           <div style={styles.headerInfo}>
-            <span style={{ fontSize: '36px', lineHeight: 1 }}>{restaurante.imagen}</span>
+            <span style={{ fontSize: isMobile ? '28px' : '36px', lineHeight: 1 }}>{restaurante.imagen}</span>
             <div>
-              <h1 style={styles.nombre}>{restaurante.nombre}</h1>
+              <h1 style={{ ...styles.nombre, fontSize: isMobile ? '20px' : '24px' }}>{restaurante.nombre}</h1>
               <p style={styles.desc}>{restaurante.descripcion}</p>
             </div>
           </div>
@@ -60,7 +68,11 @@ export default function Restaurante() {
       </div>
 
       {/* Body */}
-      <div style={styles.body}>
+      <div style={{
+        ...styles.body,
+        gridTemplateColumns: isMobile ? '1fr' : '1fr 300px',
+        padding: isMobile ? '16px' : '24px 30px',
+      }}>
 
         {/* Columna izquierda */}
         <div style={styles.left}>
@@ -77,7 +89,7 @@ export default function Restaurante() {
               <MapContainer
                 center={[restaurante.coordenadas.lat, restaurante.coordenadas.lng]}
                 zoom={16}
-                style={{ height: '220px', width: '100%' }}
+                style={{ height: isMobile ? '180px' : '220px', width: '100%' }}
               >
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                 <Marker position={[restaurante.coordenadas.lat, restaurante.coordenadas.lng]}>
@@ -133,7 +145,11 @@ export default function Restaurante() {
         </div>
 
         {/* Panel carrito */}
-        <div style={styles.carritoPanel}>
+        <div style={{
+          ...styles.carritoPanel,
+          position: isMobile ? 'static' : 'sticky',
+          top: isMobile ? 'auto' : '76px',
+        }}>
           <div style={styles.carritoCabeza}>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M2 2h1.5l2 8h7l1.5-5H5" stroke="#7c3aed" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -155,12 +171,10 @@ export default function Restaurante() {
                   </div>
                 ))}
               </div>
-
               <div style={styles.totalRow}>
                 <span style={{ color: '#888', fontSize: '13px' }}>Total</span>
                 <span style={{ color: '#f1f1f1', fontWeight: '600', fontSize: '18px' }}>${total} <span style={{ fontSize: '12px', color: '#555', fontWeight: '400' }}>MXN</span></span>
               </div>
-
               <button
                 style={styles.btnPedir}
                 onClick={() => navigate('/carrito')}
@@ -181,9 +195,7 @@ export default function Restaurante() {
 const styles = {
   container: { minHeight: '100vh', background: '#0f0f0f' },
   loading: { minHeight: '100vh', background: '#0f0f0f', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-
-  // Header
-  header: { background: '#111111', borderBottom: '1px solid #1e1e1e', padding: '24px 30px' },
+  header: { background: '#111111', borderBottom: '1px solid #1e1e1e', padding: '24px 20px' },
   headerInner: { maxWidth: '1200px', margin: '0 auto' },
   back: {
     background: 'transparent', border: '1px solid #2a2a2a', color: '#aaa',
@@ -192,23 +204,15 @@ const styles = {
     marginBottom: '20px', transition: 'border-color 0.15s',
   },
   headerInfo: { display: 'flex', alignItems: 'center', gap: '16px' },
-  nombre: { color: '#f1f1f1', margin: '0 0 4px', fontSize: '24px', fontWeight: '600' },
+  nombre: { color: '#f1f1f1', margin: '0 0 4px', fontWeight: '600' },
   desc: { color: '#666', margin: 0, fontSize: '14px' },
-
-  // Body
-  body: { display: 'grid', gridTemplateColumns: '1fr 300px', gap: '20px', padding: '24px 30px', maxWidth: '1200px', margin: '0 auto' },
+  body: { display: 'grid', gap: '20px', maxWidth: '1200px', margin: '0 auto' },
   left: { minWidth: 0, display: 'flex', flexDirection: 'column', gap: '8px' },
   seccion: { marginBottom: '8px' },
   subtitulo: { color: '#888', fontSize: '13px', fontWeight: '500', margin: '0 0 12px', display: 'flex', alignItems: 'center', textTransform: 'uppercase', letterSpacing: '0.06em' },
   mapaWrapper: { borderRadius: '10px', overflow: 'hidden', border: '1px solid #2a2a2a' },
-
-  // Menú
   menuGrid: { display: 'flex', flexDirection: 'column', gap: '8px' },
-  platilloCard: {
-    background: '#1a1a1a', border: '1px solid #2a2a2a',
-    borderRadius: '10px', padding: '16px',
-    display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px',
-  },
+  platilloCard: { background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '10px', padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' },
   platNombre: { color: '#f1f1f1', fontWeight: '500', margin: '0 0 4px', fontSize: '14px' },
   platDesc: { color: '#666', fontSize: '13px', margin: '0 0 6px' },
   platPrecio: { color: '#7c3aed', fontWeight: '600', margin: 0, fontSize: '14px' },
@@ -216,9 +220,7 @@ const styles = {
   counter: { display: 'flex', alignItems: 'center', gap: '10px', background: '#222', borderRadius: '8px', padding: '4px 10px', border: '1px solid #2a2a2a' },
   btnCount: { background: 'none', border: 'none', color: '#a78bfa', fontSize: '16px', cursor: 'pointer', fontWeight: '500', padding: '0' },
   btnAgregar: { background: '#7c3aed', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: '500', fontSize: '13px', transition: 'background 0.15s' },
-
-  // Carrito panel
-  carritoPanel: { background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '20px', height: 'fit-content', position: 'sticky', top: '20px' },
+  carritoPanel: { background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '20px', height: 'fit-content' },
   carritoCabeza: { display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' },
   carritoTitulo: { color: '#f1f1f1', margin: '0', fontSize: '15px', fontWeight: '600' },
   carritoItems: { display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '4px' },

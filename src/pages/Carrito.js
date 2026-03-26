@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useCarrito } from '../context/CarritoContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 
@@ -8,13 +8,21 @@ export default function Carrito() {
   const { carrito, agregarAlCarrito, quitarDelCarrito, vaciarCarrito, total, restauranteActivo } = useCarrito();
   const [direccion, setDireccion] = useState('');
   const [cargando, setCargando] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const navigate = useNavigate();
   const { usuario } = useAuth();
 
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   if (!usuario) {
-  navigate('/login');
-  return;
-}
+    navigate('/login');
+    return;
+  }
+
   const handlePedir = async () => {
     if (!direccion.trim()) {
       alert('Por favor ingresa tu dirección de entrega');
@@ -83,8 +91,14 @@ export default function Carrito() {
   }
 
   return (
-    <div style={styles.container}>
-      <div style={styles.layout}>
+    <div style={{
+      ...styles.container,
+      padding: isMobile ? '16px' : '30px',
+    }}>
+      <div style={{
+        ...styles.layout,
+        gridTemplateColumns: isMobile ? '1fr' : '1fr 300px',
+      }}>
 
         {/* IZQUIERDA */}
         <div style={styles.left}>
@@ -101,7 +115,7 @@ export default function Carrito() {
           </button>
 
           <div>
-            <h1 style={styles.titulo}>Tu pedido</h1>
+            <h1 style={{ ...styles.titulo, fontSize: isMobile ? '20px' : '22px' }}>Tu pedido</h1>
             {restauranteActivo && (
               <div style={styles.restCard}>
                 <span style={{ fontSize: '20px', lineHeight: 1 }}>{restauranteActivo.imagen}</span>
@@ -118,7 +132,9 @@ export default function Carrito() {
             {carrito.map((p, i) => (
               <div key={p._id} style={{
                 ...styles.item,
-                borderBottom: i < carrito.length - 1 ? '1px solid #222' : 'none'
+                borderBottom: i < carrito.length - 1 ? '1px solid #222' : 'none',
+                gridTemplateColumns: isMobile ? '1fr auto auto' : '1fr auto auto',
+                gap: isMobile ? '8px' : '16px',
               }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={styles.itemNombre}>{p.nombre}</p>
@@ -149,7 +165,7 @@ export default function Carrito() {
         </div>
 
         {/* DERECHA */}
-        <div style={styles.right}>
+        <div style={{ position: isMobile ? 'static' : 'sticky', top: '20px' }}>
           <div style={styles.resumen}>
             <h3 style={styles.resumenTitulo}>Resumen del pedido</h3>
 
@@ -194,32 +210,24 @@ const styles = {
     background: '#0f0f0f',
     backgroundImage: 'radial-gradient(circle, #2a2a2a 1px, transparent 1px)',
     backgroundSize: '24px 24px',
-    padding: '30px',
   },
   layout: {
     maxWidth: '1000px',
     margin: '0 auto',
     display: 'grid',
-    gridTemplateColumns: '1fr 300px',
     gap: '24px',
     alignItems: 'start',
   },
   left: { display: 'flex', flexDirection: 'column', gap: '16px' },
-  right: { position: 'sticky', top: '20px' },
   empty: {
-    minHeight: '100vh',
-    background: '#0f0f0f',
+    minHeight: '100vh', background: '#0f0f0f',
     display: 'flex', flexDirection: 'column',
-    alignItems: 'center', justifyContent: 'center',
-    gap: '8px',
+    alignItems: 'center', justifyContent: 'center', gap: '8px',
   },
   emptyIcon: {
-    width: '64px', height: '64px',
-    background: '#1a1a1a',
-    border: '1px solid #2a2a2a',
-    borderRadius: '16px',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    marginBottom: '8px',
+    width: '64px', height: '64px', background: '#1a1a1a',
+    border: '1px solid #2a2a2a', borderRadius: '16px',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px',
   },
   back: {
     background: 'transparent', border: '1px solid #2a2a2a',
@@ -228,14 +236,14 @@ const styles = {
     display: 'inline-flex', alignItems: 'center',
     width: 'fit-content', transition: 'border-color 0.15s',
   },
-  titulo: { color: '#f1f1f1', fontSize: '22px', fontWeight: '600', margin: '0 0 12px' },
+  titulo: { color: '#f1f1f1', fontWeight: '600', margin: '0 0 12px' },
   restCard: {
     background: '#1a1a1a', border: '1px solid #2a2a2a',
     borderRadius: '10px', padding: '12px 16px',
     display: 'flex', alignItems: 'center', gap: '12px',
   },
   lista: { background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '12px', overflow: 'hidden' },
-  item: { display: 'grid', gridTemplateColumns: '1fr auto auto', alignItems: 'center', padding: '14px 16px', gap: '16px' },
+  item: { display: 'grid', alignItems: 'center', padding: '14px 16px' },
   itemNombre: { color: '#f1f1f1', margin: '0 0 3px', fontSize: '14px', fontWeight: '500' },
   itemPrecio: { color: '#555', fontSize: '12px', margin: 0 },
   counter: { display: 'flex', alignItems: 'center', gap: '8px', background: '#222', borderRadius: '8px', padding: '4px 10px', border: '1px solid #2a2a2a' },

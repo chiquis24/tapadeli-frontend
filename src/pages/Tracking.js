@@ -46,7 +46,14 @@ export default function Tracking() {
   const [pedido, setPedido] = useState(null);
   const [posRepartidor, setPosRepartidor] = useState(null);
   const [estado, setEstado] = useState('pendiente');
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const simulacionRef = useRef(null);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     axios.get(`${process.env.REACT_APP_API_URL}/api/pedidos`)
@@ -61,6 +68,7 @@ export default function Tracking() {
     return () => {
       if (simulacionRef.current) cancelAnimationFrame(simulacionRef.current);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pedidoId]);
 
   const moverSuave = (origen, destino, duracion, callback) => {
@@ -104,19 +112,22 @@ export default function Tracking() {
   const colorActual = ESTADO_COLORS[estado];
 
   return (
-    <div style={styles.container}>
+    <div style={{
+      ...styles.container,
+      padding: isMobile ? '16px' : '30px 20px',
+    }}>
       <div style={styles.inner}>
 
         {/* Header */}
         <div style={styles.header}>
-          <div>
-            <p style={styles.eyebrow}>Rastreando en tiempo real</p>
-            <h1 style={styles.titulo}>Tu pedido está en camino</h1>
-            <p style={styles.pedidoId}>Pedido #{pedidoId?.slice(-6).toUpperCase()}</p>
-          </div>
+          <p style={styles.eyebrow}>Rastreando en tiempo real</p>
+          <h1 style={{ ...styles.titulo, fontSize: isMobile ? '18px' : '20px' }}>
+            Tu pedido está en camino
+          </h1>
+          <p style={styles.pedidoId}>Pedido #{pedidoId?.slice(-6).toUpperCase()}</p>
         </div>
 
-        {/* Stepper de estados */}
+        {/* Stepper */}
         <div style={styles.stepper}>
           {ESTADOS.map((e, i) => {
             const activo = i <= indexActual;
@@ -139,23 +150,18 @@ export default function Tracking() {
                       </svg>
                     )}
                   </div>
-                  <div>
-                    <p style={{
-                      margin: 0,
-                      fontSize: '13px',
-                      fontWeight: esCurrent ? '600' : '400',
-                      color: esCurrent ? '#f1f1f1' : activo ? '#888' : '#444',
-                      transition: 'color 0.3s',
-                    }}>{e.label}</p>
-                  </div>
+                  <p style={{
+                    margin: 0, fontSize: '13px',
+                    fontWeight: esCurrent ? '600' : '400',
+                    color: esCurrent ? '#f1f1f1' : activo ? '#888' : '#444',
+                    transition: 'color 0.3s',
+                  }}>{e.label}</p>
                 </div>
                 {i < ESTADOS.length - 1 && (
                   <div style={{
-                    width: '1px',
-                    height: '20px',
+                    width: '1px', height: '20px',
                     background: i < indexActual ? colorActual : '#2a2a2a',
-                    marginLeft: '14px',
-                    transition: 'background 0.3s',
+                    marginLeft: '14px', transition: 'background 0.3s',
                   }} />
                 )}
               </div>
@@ -169,7 +175,7 @@ export default function Tracking() {
             <MapContainer
               center={posRepartidor}
               zoom={16}
-              style={{ height: '360px', width: '100%' }}
+              style={{ height: isMobile ? '260px' : '360px', width: '100%' }}
             >
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
               <MoverMapa posicion={posRepartidor} />
@@ -186,7 +192,7 @@ export default function Tracking() {
               )}
             </MapContainer>
           ) : (
-            <div style={styles.mapaPlaceholder}>
+            <div style={{ ...styles.mapaPlaceholder, height: isMobile ? '260px' : '360px' }}>
               <p style={{ color: '#555', fontSize: '13px' }}>Cargando mapa...</p>
             </div>
           )}
@@ -194,7 +200,11 @@ export default function Tracking() {
 
         {/* Entregado */}
         {estado === 'entregado' && (
-          <div style={styles.entregadoCard}>
+          <div style={{
+            ...styles.entregadoCard,
+            flexDirection: isMobile ? 'column' : 'row',
+            textAlign: isMobile ? 'center' : 'left',
+          }}>
             <div style={styles.entregadoIcon}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path d="M4 12l5 5L20 7" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -205,7 +215,7 @@ export default function Tracking() {
               <p style={{ color: '#555', fontSize: '13px', margin: 0 }}>Gracias por usar TapaDeli</p>
             </div>
             <button
-              style={styles.btnFinal}
+              style={{ ...styles.btnFinal, marginLeft: isMobile ? '0' : 'auto' }}
               onClick={() => navigate('/')}
               onMouseEnter={e => e.currentTarget.style.background = '#6d28d9'}
               onMouseLeave={e => e.currentTarget.style.background = '#7c3aed'}
@@ -226,61 +236,29 @@ const styles = {
     background: '#0f0f0f',
     backgroundImage: 'radial-gradient(circle, #2a2a2a 1px, transparent 1px)',
     backgroundSize: '24px 24px',
-    padding: '30px 20px',
   },
   inner: { maxWidth: '680px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' },
-
-  header: {
-    background: '#111',
-    border: '1px solid #1e1e1e',
-    borderRadius: '12px',
-    padding: '24px',
-  },
+  header: { background: '#111', border: '1px solid #1e1e1e', borderRadius: '12px', padding: '20px' },
   eyebrow: { fontSize: '12px', color: '#7c3aed', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 8px', fontWeight: '500' },
-  titulo: { color: '#f1f1f1', fontSize: '20px', fontWeight: '600', margin: '0 0 4px' },
+  titulo: { color: '#f1f1f1', fontWeight: '600', margin: '0 0 4px' },
   pedidoId: { color: '#555', fontSize: '13px', margin: 0 },
-
-  stepper: {
-    background: '#111',
-    border: '1px solid #1e1e1e',
-    borderRadius: '12px',
-    padding: '20px 24px',
-  },
+  stepper: { background: '#111', border: '1px solid #1e1e1e', borderRadius: '12px', padding: '20px 24px' },
   stepItem: { display: 'flex', flexDirection: 'column' },
-
-  mapaWrapper: {
-    borderRadius: '12px',
-    overflow: 'hidden',
-    border: '1px solid #2a2a2a',
-  },
-  mapaPlaceholder: {
-    height: '360px',
-    background: '#111',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
+  mapaWrapper: { borderRadius: '12px', overflow: 'hidden', border: '1px solid #2a2a2a' },
+  mapaPlaceholder: { background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   entregadoCard: {
-    background: '#111',
-    border: '1px solid #1a3a2a',
-    borderRadius: '12px',
-    padding: '20px 24px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '16px',
+    background: '#111', border: '1px solid #1a3a2a',
+    borderRadius: '12px', padding: '20px 24px',
+    display: 'flex', alignItems: 'center', gap: '16px',
   },
   entregadoIcon: {
-    width: '44px', height: '44px',
-    background: '#0a2a1e',
-    borderRadius: '50%',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    flexShrink: 0,
+    width: '44px', height: '44px', background: '#0a2a1e',
+    borderRadius: '50%', display: 'flex', alignItems: 'center',
+    justifyContent: 'center', flexShrink: 0,
   },
   btnFinal: {
     background: '#7c3aed', color: '#fff', border: 'none',
     padding: '10px 20px', borderRadius: '8px', cursor: 'pointer',
-    fontWeight: '500', fontSize: '13px', marginLeft: 'auto',
-    transition: 'background 0.15s',
+    fontWeight: '500', fontSize: '13px', transition: 'background 0.15s',
   },
 };

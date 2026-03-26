@@ -1,5 +1,5 @@
 import Logo from '../components/Logo'
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from '../services/firebase';
 import { useNavigate } from 'react-router-dom';
@@ -7,7 +7,14 @@ import { useNavigate } from 'react-router-dom';
 function Login() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleGoogleLogin = async () => {
     setLoading(true);
@@ -25,107 +32,112 @@ function Login() {
   return (
     <div style={{
       minHeight: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '2rem',
-    background: '#0d0d0d',
-    backgroundImage: 'radial-gradient(circle, #2a2a2a 1px, transparent 1px)',
-    backgroundSize: '24px 24px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: isMobile ? '1rem' : '2rem',
+      background: '#0d0d0d',
+      backgroundImage: 'radial-gradient(circle, #2a2a2a 1px, transparent 1px)',
+      backgroundSize: '24px 24px',
     }}>
       <div style={{
         display: 'flex',
+        flexDirection: isMobile ? 'column' : 'row',
         width: '100%',
-        maxWidth: '860px',
+        maxWidth: isMobile ? '420px' : '860px',
         borderRadius: '16px',
         overflow: 'hidden',
         border: '1px solid #2a2a2a'
       }}>
 
-        {/* Panel izquierdo */}
-        <div style={{
-          flex: 1,
-          background: '#111111',
-          padding: '48px 40px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between'
-        }}>
-          <div>
-            {/* Logo */}
-            <div style={{ marginBottom: '48px' }}>
-            <Logo size="md" />
-            </div>
-
-            <h2 style={{ fontSize: '26px', fontWeight: '600', color: '#f1f1f1', margin: '0 0 12px', lineHeight: '1.3' }}>
-              Comida de Tapachula<br />a tu puerta
-            </h2>
-            <p style={{ fontSize: '14px', color: '#666', margin: '0 0 40px', lineHeight: '1.6' }}>
-              Pide a los mejores restaurantes locales en minutos.
-            </p>
-
-            {/* Features */}
-            {[
-              {
-                label: 'Pedidos en segundos',
-                desc: 'Elige, agrega y confirma sin complicaciones.',
-                icon: (
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M2 8h12M8 2l6 6-6 6" stroke="#7c3aed" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                )
-              },
-              {
-                label: 'Rastrea tu pedido en vivo',
-                desc: 'Sigue cada etapa desde la cocina hasta tu puerta.',
-                icon: (
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <circle cx="8" cy="8" r="5" stroke="#7c3aed" strokeWidth="1.5"/>
-                    <circle cx="8" cy="8" r="2" fill="#7c3aed"/>
-                  </svg>
-                )
-              },
-              {
-                label: 'Los mejores restaurantes locales',
-                desc: 'Tacos, mariscos, pizzas y más de Tapachula.',
-                icon: (
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M8 2l1.5 3 3.5.5-2.5 2.5.5 3.5L8 10l-3 1.5.5-3.5L3 5.5l3.5-.5L8 2z" stroke="#7c3aed" strokeWidth="1.5" strokeLinejoin="round"/>
-                  </svg>
-                )
-              }
-            ].map((f, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '24px' }}>
-                <div style={{
-                  width: '32px', height: '32px',
-                  background: '#2a1f4a',
-                  borderRadius: '8px',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexShrink: 0, marginTop: '2px'
-                }}>
-                  {f.icon}
-                </div>
-                <div>
-                  <p style={{ fontSize: '14px', fontWeight: '500', color: '#e5e5e5', margin: '0 0 2px' }}>{f.label}</p>
-                  <p style={{ fontSize: '13px', color: '#555', margin: '0' }}>{f.desc}</p>
-                </div>
+        {/* Panel izquierdo — oculto en móvil */}
+        {!isMobile && (
+          <div style={{
+            flex: 1,
+            background: '#111111',
+            padding: '48px 40px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between'
+          }}>
+            <div>
+              <div style={{ marginBottom: '48px' }}>
+                <Logo size="md" />
               </div>
-            ))}
+              <h2 style={{ fontSize: '26px', fontWeight: '600', color: '#f1f1f1', margin: '0 0 12px', lineHeight: '1.3' }}>
+                Comida de Tapachula<br />a tu puerta
+              </h2>
+              <p style={{ fontSize: '14px', color: '#666', margin: '0 0 40px', lineHeight: '1.6' }}>
+                Pide a los mejores restaurantes locales en minutos.
+              </p>
+              {[
+                {
+                  label: 'Pedidos en segundos',
+                  desc: 'Elige, agrega y confirma sin complicaciones.',
+                  icon: (
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M2 8h12M8 2l6 6-6 6" stroke="#7c3aed" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )
+                },
+                {
+                  label: 'Rastrea tu pedido en vivo',
+                  desc: 'Sigue cada etapa desde la cocina hasta tu puerta.',
+                  icon: (
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <circle cx="8" cy="8" r="5" stroke="#7c3aed" strokeWidth="1.5"/>
+                      <circle cx="8" cy="8" r="2" fill="#7c3aed"/>
+                    </svg>
+                  )
+                },
+                {
+                  label: 'Los mejores restaurantes locales',
+                  desc: 'Tacos, mariscos, pizzas y más de Tapachula.',
+                  icon: (
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M8 2l1.5 3 3.5.5-2.5 2.5.5 3.5L8 10l-3 1.5.5-3.5L3 5.5l3.5-.5L8 2z" stroke="#7c3aed" strokeWidth="1.5" strokeLinejoin="round"/>
+                    </svg>
+                  )
+                }
+              ].map((f, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '24px' }}>
+                  <div style={{
+                    width: '32px', height: '32px',
+                    background: '#2a1f4a',
+                    borderRadius: '8px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    flexShrink: 0, marginTop: '2px'
+                  }}>
+                    {f.icon}
+                  </div>
+                  <div>
+                    <p style={{ fontSize: '14px', fontWeight: '500', color: '#e5e5e5', margin: '0 0 2px' }}>{f.label}</p>
+                    <p style={{ fontSize: '13px', color: '#555', margin: '0' }}>{f.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p style={{ fontSize: '12px', color: '#333', margin: '0' }}>© 2025 TapaDeli · Tapachula, Chiapas</p>
           </div>
+        )}
 
-          <p style={{ fontSize: '12px', color: '#333', margin: '0' }}>© 2025 TapaDeli · Tapachula, Chiapas</p>
-        </div>
-
-        {/* Panel derecho */}
+        {/* Panel derecho — formulario */}
         <div style={{
-          width: '320px',
+          width: isMobile ? '100%' : '320px',
           background: '#1a1a1a',
-          padding: '48px 36px',
+          padding: isMobile ? '40px 28px' : '48px 36px',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
-          borderLeft: '1px solid #2a2a2a'
+          borderLeft: isMobile ? 'none' : '1px solid #2a2a2a'
         }}>
+          {/* Logo solo visible en móvil */}
+          {isMobile && (
+            <div style={{ marginBottom: '32px', display: 'flex', justifyContent: 'center' }}>
+              <Logo size="md" />
+            </div>
+          )}
+
           <div style={{ marginBottom: '32px' }}>
             <h1 style={{ fontSize: '20px', fontWeight: '600', color: '#f1f1f1', margin: '0 0 8px' }}>
               Inicia sesión
